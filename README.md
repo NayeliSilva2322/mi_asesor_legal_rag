@@ -61,17 +61,6 @@ También necesitas:
 
 ---
 
-## Estructura del proyecto
-
-```
-RAG_mi_asesor_legal/
-│── dataset/                # Carpeta con archivos de texto legales
-│── chroma_db/              # Base de datos vectorial persistente
-│── RAG_mi_asesor_legal.ipynb  # Notebook principal
-│── README.md               # Este archivo
-```
-
----
 
 ## 📨 Contacto
 
