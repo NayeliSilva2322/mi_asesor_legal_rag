@@ -1,6 +1,6 @@
 # Mi Asesor Legal — servicio RAG en produccion
 
-Reescritura del notebook `RAG_mi_asesor_legal.ipynb` como un servicio dockerizado,
+Estructura de sistema agentico RAG con dockerizado,
 con **Postgres + pgvector** como unica base de datos (reemplaza a Chroma y a
 Google Drive) y una API HTTP en lugar de celdas de notebook.
 
