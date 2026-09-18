@@ -1,0 +1,69 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: asesor-legal-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-asesor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-asesor}
+      POSTGRES_DB: ${POSTGRES_DB:-asesor_legal}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-asesor} -d ${POSTGRES_DB:-asesor_legal}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: asesor-legal-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-asesor}:${POSTGRES_PASSWORD:-asesor}@postgres:5432/${POSTGRES_DB:-asesor_legal}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Servidor de inferencia opcional para el modelo fine-tuneado.
+  # Solo hace falta si LLM_BASE_URL apunta aqui (requiere GPU con nvidia-container-toolkit).
+  # Arrancar con: docker compose --profile llm up -d
+  llm:
+    image: ghcr.io/huggingface/text-generation-inference:2.0.4
+    container_name: asesor-legal-llm
+    restart: unless-stopped
+    profiles: ["llm"]
+    environment:
+      MODEL_ID: ${MODEL_ID:-NAYEIRN23/mi-asesor-legal}
+      HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN}
+      QUANTIZE: bitsandbytes-nf4
+      MAX_INPUT_LENGTH: "4096"
+      MAX_TOTAL_TOKENS: "4608"
+    ports:
+      - "${LLM_PORT:-8080}:80"
+    volumes:
+      - hf_cache:/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  pgdata:
+  hf_cache:
