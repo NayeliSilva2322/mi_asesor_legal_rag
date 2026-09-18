@@ -18,7 +18,7 @@ The service provides an end-to-end RAG pipeline:
 
 ## Architecture
 
-![System Architecture](img/architecture_rag_leal.png)
+![System Architecture](img/architecture_rag_leal.jpg)
 
 ## Technology Stack
 
